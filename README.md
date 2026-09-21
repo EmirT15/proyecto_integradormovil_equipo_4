@@ -1,4 +1,4 @@
-# Proyecto Integrador Móvil - Equipo N
+# Proyecto Integrador Móvil - Equipo 4
 
 ## Integrantes
 
