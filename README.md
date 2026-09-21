@@ -1,6 +1,7 @@
 # Proyecto Integrador Móvil - Equipo N
 
 ## Integrantes
+
 * Emir Manuel Huchin Tzab
 * Juan Pablo Moo Uc
 * Jesús Alfredo May Brito
@@ -8,17 +9,21 @@
 * Wilberth Alberto Canul Pech
 
 ## Planteamiento del Proyecto Integrador
+
 * **Problema:** Explicación breve del problema real a resolver.
 * **Usuarios:** Tipo de usuarios finales.
 * **Alcance:** Descripción preliminar del software.
 
 ## Práctica No. 1: Configuración del Entorno y Primera Aplicación
+
 ### Descripción del Proyecto
+
 * **`lib/`**: Contiene todo el código Dart fuente del proyecto (`main.dart`).
 * **`pubspec.yaml`**: Archivo de configuración central, dependencias y assets del proyecto.
 * **`test/`**: Espacio dedicado a pruebas unitarias y de integración.
 
 ### Conceptos Evaluados
+
 * **Hot Reload vs Hot Restart:** Hot Reload inyecta los cambios de código en la máquina virtual de Dart sin perder el estado de la aplicación. Hot Restart destruye el estado guardado, reinicia el ciclo de vida y reejecuta la app desde el método `main()`.
 
 ## Práctica No. 3: Formularios y Validación
@@ -39,16 +44,16 @@ Implementar un formulario de registro de estudiantes utilizando Flutter, aplican
 
 ### Validaciones realizadas
 
-* Validación del nombre.
-* Validación del correo electrónico.
-* Selección del semestre.
-* Registro de estudiantes.
-* Eliminación de estudiantes.
-* Prueba con diferentes tamaños de ventana.
+* El nombre debe contener al menos 3 caracteres.
+* El correo debe contener el carácter `@`.
+* Se validaron los campos del formulario.
+* Se agregaron estudiantes a la lista.
+* Se eliminó un estudiante de la lista.
+* Se probó la aplicación con diferentes tamaños de ventana.
 
 ### Pruebas realizadas
 
-Se ejecutaron:
+Se ejecutaron los siguientes comandos:
 
 ```text
 dart format .
