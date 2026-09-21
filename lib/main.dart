@@ -1,78 +1,115 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(const App());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class App extends StatelessWidget {
+  const App({super.key});
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(useMaterial3: true),
-    home: const PropinaPage(),
+    home: const RegistroPage(),
   );
 }
 
-class PropinaPage extends StatefulWidget {
-  const PropinaPage({super.key});
+class RegistroPage extends StatefulWidget {
+  const RegistroPage({super.key});
   @override
-  State<PropinaPage> createState() => _PropinaPageState();
+  State<RegistroPage> createState() => _RegistroPageState();
 }
 
-class _PropinaPageState extends State<PropinaPage> {
-  final consumo = TextEditingController();
-  double porcentaje = 10;
-  double propina = 0;
-  double total = 0;
-  void calcular() {
-    final valor = double.tryParse(consumo.text) ?? 0;
-    setState(() {
-      propina = valor * porcentaje / 100;
-      total = valor + propina;
-    });
+class _RegistroPageState extends State<RegistroPage> {
+  final formKey = GlobalKey<FormState>();
+  final nombre = TextEditingController();
+  final correo = TextEditingController();
+  String semestre = '1';
+  final List<String> alumnos = [];
+  void guardar() {
+    if (formKey.currentState!.validate()) {
+      setState(() {
+        alumnos.add('${nombre.text} | ${correo.text} | Sem. $semestre');
+        nombre.clear();
+        correo.clear();
+        semestre = '1';
+      });
+    }
   }
 
   @override
-  void dispose() {
-    consumo.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Calculadora de propina')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: consumo,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Consumo',
-                prefixIcon: Icon(Icons.attach_money),
-                border: OutlineInputBorder(),
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Registro de estudiantes')),
+    body: LayoutBuilder(
+      builder: (context, c) {
+        final ancho = c.maxWidth > 700 ? 600.0 : c.maxWidth;
+        return Center(
+          child: SizedBox(
+            width: ancho,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: nombre,
+                          decoration: const InputDecoration(
+                            labelText: 'Nombre',
+                          ),
+                          validator: (v) => v == null || v.trim().length < 3
+                              ? 'Escribe un nombre válido'
+                              : null,
+                        ),
+                        TextFormField(
+                          controller: correo,
+                          decoration: const InputDecoration(
+                            labelText: 'Correo',
+                          ),
+                          validator: (v) => v != null && v.contains('@')
+                              ? null
+                              : 'Correo inválido',
+                        ),
+                        DropdownButtonFormField<String>(
+                          initialValue: semestre,
+                          items: List.generate(9, (i) => '${i + 1}')
+                              .map(
+                                (s) => DropdownMenuItem(
+                                  value: s,
+                                  child: Text('$s°'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) => semestre = v!,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: guardar,
+                          child: const Text('Agregar'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: alumnos.length,
+                      itemBuilder: (_, i) => ListTile(
+                        leading: CircleAvatar(child: Text('${i + 1}')),
+                        title: Text(alumnos[i]),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => setState(() => alumnos.removeAt(i)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            Text('Propina: ${porcentaje.toInt()} %'),
-            Slider(
-              value: porcentaje,
-              min: 0,
-              max: 30,
-              divisions: 6,
-              onChanged: (v) => setState(() => porcentaje = v),
-            ),
-            FilledButton(onPressed: calcular, child: const Text('Calcular')),
-            const SizedBox(height: 20),
-            Text('Propina: \$${propina.toStringAsFixed(2)}'),
-            Text(
-              'Total: \$${total.toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+        );
+      },
+    ),
+  );
 }
