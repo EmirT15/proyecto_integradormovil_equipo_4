@@ -1,115 +1,89 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-void main() => runApp(const App());
+void main() => runApp(const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: UsuariosPage(),
+    ));
 
-class App extends StatelessWidget {
-  const App({super.key});
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(useMaterial3: true),
-    home: const RegistroPage(),
-  );
+class Usuario {
+  final int id;
+  final String nombre;
+  final String correo;
+
+  Usuario({
+    required this.id,
+    required this.nombre,
+    required this.correo,
+  });
+
+  factory Usuario.fromJson(Map<String, dynamic> j) => Usuario(
+        id: j['id'],
+        nombre: j['name'],
+        correo: j['email'],
+      );
 }
 
-class RegistroPage extends StatefulWidget {
-  const RegistroPage({super.key});
+class UsuariosPage extends StatefulWidget {
+  const UsuariosPage({super.key});
+
   @override
-  State<RegistroPage> createState() => _RegistroPageState();
+  State<UsuariosPage> createState() => _UsuariosPageState();
 }
 
-class _RegistroPageState extends State<RegistroPage> {
-  final formKey = GlobalKey<FormState>();
-  final nombre = TextEditingController();
-  final correo = TextEditingController();
-  String semestre = '1';
-  final List<String> alumnos = [];
-  void guardar() {
-    if (formKey.currentState!.validate()) {
-      setState(() {
-        alumnos.add('${nombre.text} | ${correo.text} | Sem. $semestre');
-        nombre.clear();
-        correo.clear();
-        semestre = '1';
-      });
+class _UsuariosPageState extends State<UsuariosPage> {
+  late Future<List<Usuario>> futuro;
+
+  @override
+  void initState() {
+    super.initState();
+    futuro = cargar();
+  }
+
+  Future<List<Usuario>> cargar() async {
+    final r = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/users'));
+
+    if (r.statusCode != 200) {
+      throw Exception('HTTP ${r.statusCode}');
     }
+
+    final List datos = jsonDecode(r.body);
+    return datos.map((e) => Usuario.fromJson(e)).toList();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Registro de estudiantes')),
-    body: LayoutBuilder(
-      builder: (context, c) {
-        final ancho = c.maxWidth > 700 ? 600.0 : c.maxWidth;
-        return Center(
-          child: SizedBox(
-            width: ancho,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Form(
-                    key: formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: nombre,
-                          decoration: const InputDecoration(
-                            labelText: 'Nombre',
-                          ),
-                          validator: (v) => v == null || v.trim().length < 3
-                              ? 'Escribe un nombre válido'
-                              : null,
-                        ),
-                        TextFormField(
-                          controller: correo,
-                          decoration: const InputDecoration(
-                            labelText: 'Correo',
-                          ),
-                          validator: (v) => v != null && v.contains('@')
-                              ? null
-                              : 'Correo inválido',
-                        ),
-                        DropdownButtonFormField<String>(
-                          initialValue: semestre,
-                          items: List.generate(9, (i) => '${i + 1}')
-                              .map(
-                                (s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text('$s°'),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) => semestre = v!,
-                        ),
-                        const SizedBox(height: 12),
-                        FilledButton(
-                          onPressed: guardar,
-                          child: const Text('Agregar'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: alumnos.length,
-                      itemBuilder: (_, i) => ListTile(
-                        leading: CircleAvatar(child: Text('${i + 1}')),
-                        title: Text(alumnos[i]),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => setState(() => alumnos.removeAt(i)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+        appBar: AppBar(title: const Text('Usuarios REST')),
+        body: FutureBuilder<List<Usuario>>(
+          future: futuro,
+          builder: (context, s) {
+            if (s.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (s.hasError) {
+              return Center(child: Text('Error: ${s.error}'));
+            }
+
+            final usuarios = s.data ?? [];
+
+            if (usuarios.isEmpty) {
+              return const Center(child: Text('No hay usuarios disponibles.'));
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async => setState(() => futuro = cargar()),
+              child: ListView.builder(
+                itemCount: usuarios.length,
+                itemBuilder: (context, i) => ListTile(
+                  leading: CircleAvatar(child: Text('${usuarios[i].id}')),
+                  title: Text(usuarios[i].nombre),
+                  subtitle: Text(usuarios[i].correo),
+                ),
               ),
-            ),
-          ),
-        );
-      },
-    ),
-  );
+            );
+          },
+        ),
+      );
 }

@@ -5,7 +5,7 @@ void main() {
   testWidgets('La pantalla de registro se muestra correctamente', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const App());
+    await tester.pumpWidget(const MyApp());
 
     expect(find.text('Registro de estudiantes'), findsOneWidget);
     expect(find.text('Nombre'), findsOneWidget);
