@@ -1,115 +1,130 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-void main() => runApp(const App());
+void main() => runApp(const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: CatFactsPage(),
+    ));
 
-class App extends StatelessWidget {
-  const App({super.key});
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(useMaterial3: true),
-    home: const RegistroPage(),
-  );
+class CatFact {
+  final String fact;
+  final int length;
+
+  CatFact({required this.fact, required this.length});
+
+  factory CatFact.fromJson(Map<String, dynamic> json) => CatFact(
+        fact: json['fact'],
+        length: json['length'],
+      );
 }
 
-class RegistroPage extends StatefulWidget {
-  const RegistroPage({super.key});
+class CatFactsPage extends StatefulWidget {
+  const CatFactsPage({super.key});
+
   @override
-  State<RegistroPage> createState() => _RegistroPageState();
+  State<CatFactsPage> createState() => _CatFactsPageState();
 }
 
-class _RegistroPageState extends State<RegistroPage> {
-  final formKey = GlobalKey<FormState>();
-  final nombre = TextEditingController();
-  final correo = TextEditingController();
-  String semestre = '1';
-  final List<String> alumnos = [];
-  void guardar() {
-    if (formKey.currentState!.validate()) {
-      setState(() {
-        alumnos.add('${nombre.text} | ${correo.text} | Sem. $semestre');
-        nombre.clear();
-        correo.clear();
-        semestre = '1';
-      });
+class _CatFactsPageState extends State<CatFactsPage> {
+  late Future<List<CatFact>> futuroDatos;
+
+  @override
+  void initState() {
+    super.initState();
+    futuroDatos = cargarDatos();
+  }
+
+  Future<List<CatFact>> cargarDatos() async {
+    final response = await http.get(Uri.parse('https://catfact.ninja/facts?limit=20'));
+
+    if (response.statusCode != 200) {
+      throw Exception('HTTP ${response.statusCode}');
     }
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    final List datos = body['data'];
+    return datos.map((e) => CatFact.fromJson(e)).toList();
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Registro de estudiantes')),
-    body: LayoutBuilder(
-      builder: (context, c) {
-        final ancho = c.maxWidth > 700 ? 600.0 : c.maxWidth;
-        return Center(
-          child: SizedBox(
-            width: ancho,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Form(
-                    key: formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: nombre,
-                          decoration: const InputDecoration(
-                            labelText: 'Nombre',
-                          ),
-                          validator: (v) => v == null || v.trim().length < 3
-                              ? 'Escribe un nombre válido'
-                              : null,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Datos Curiosos de Gatos 🐱')),
+      body: FutureBuilder<List<CatFact>>(
+        future: futuroDatos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final lista = snapshot.data ?? [];
+
+          return RefreshIndicator(
+            onRefresh: () async => setState(() => futuroDatos = cargarDatos()),
+            child: ListView.builder(
+              itemCount: lista.length,
+              itemBuilder: (context, i) {
+                final item = lista[i];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: ListTile(
+                    leading: CircleAvatar(child: Text('${i + 1}')),
+                    title: Text(item.fact),
+                    subtitle: Text('Longitud del texto: ${item.length} caracteres'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetalleFactPage(fact: item, index: i + 1),
                         ),
-                        TextFormField(
-                          controller: correo,
-                          decoration: const InputDecoration(
-                            labelText: 'Correo',
-                          ),
-                          validator: (v) => v != null && v.contains('@')
-                              ? null
-                              : 'Correo inválido',
-                        ),
-                        DropdownButtonFormField<String>(
-                          initialValue: semestre,
-                          items: List.generate(9, (i) => '${i + 1}')
-                              .map(
-                                (s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text('$s°'),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) => semestre = v!,
-                        ),
-                        const SizedBox(height: 12),
-                        FilledButton(
-                          onPressed: guardar,
-                          child: const Text('Agregar'),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                  const Divider(),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: alumnos.length,
-                      itemBuilder: (_, i) => ListTile(
-                        leading: CircleAvatar(child: Text('${i + 1}')),
-                        title: Text(alumnos[i]),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => setState(() => alumnos.removeAt(i)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DetalleFactPage extends StatelessWidget {
+  final CatFact fact;
+  final int index;
+
+  const DetalleFactPage({super.key, required this.fact, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Dato Curioso #$index')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.pets, size: 50, color: Colors.orange),
+                const SizedBox(height: 15),
+                Text(
+                  fact.fact,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
-        );
-      },
-    ),
-  );
+        ),
+      ),
+    );
+  }
 }
