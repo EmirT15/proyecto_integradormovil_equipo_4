@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'screens/usuarios_page.dart';
+import 'screens/publicaciones_page.dart';
+import 'screens/productos_page.dart';
+
 void main() => runApp(const App());
 
 class App extends StatelessWidget {
@@ -8,8 +12,69 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(useMaterial3: true),
-    home: const RegistroPage(),
+    home: const MenuPrincipalPage(),
   );
+}
+
+class MenuPrincipalPage extends StatefulWidget {
+  const MenuPrincipalPage({super.key});
+
+  @override
+  State<MenuPrincipalPage> createState() => _MenuPrincipalPageState();
+}
+
+class _MenuPrincipalPageState extends State<MenuPrincipalPage> {
+  int _indiceSeleccionado = 0;
+
+  // Pantallas disponibles en la aplicación.
+  late final List<Widget> _pantallas = [
+    RegistroPage(),
+    const UsuariosPage(),
+    const ProductosPage(),
+    const PublicacionesPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(index: _indiceSeleccionado, children: _pantallas),
+
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _indiceSeleccionado,
+
+        onDestinationSelected: (int indice) {
+          setState(() {
+            _indiceSeleccionado = indice;
+          });
+        },
+
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.app_registration),
+            selectedIcon: Icon(Icons.app_registration),
+            label: 'Registro',
+          ),
+
+          NavigationDestination(
+            icon: Icon(Icons.people_outline),
+            selectedIcon: Icon(Icons.people),
+            label: 'Usuarios',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.article_outlined),
+            selectedIcon: Icon(Icons.article),
+            label: 'Productos',
+          ),
+
+          NavigationDestination(
+            icon: Icon(Icons.article_outlined),
+            selectedIcon: Icon(Icons.article),
+            label: 'Publicaciones',
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class RegistroPage extends StatefulWidget {
