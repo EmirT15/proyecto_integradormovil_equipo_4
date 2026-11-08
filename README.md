@@ -1,61 +1,17 @@
-# Proyecto Integrador Móvil - Equipo 4
+# practica_06_persistencia
 
-## Integrantes
+A new Flutter project.
 
-* Emir Manuel Huchin Tzab
-* Juan Pablo Moo Uc
-* Jesús Alfredo May Brito
-* Charly andrey Keb Homa
-* Wilberth Alberto Canul Pech
+## Getting Started
 
-## Planteamiento del Proyecto Integrador
+This project is a starting point for a Flutter application.
 
-* **Problema:** Explicación breve del problema real a resolver.
-* **Usuarios:** Tipo de usuarios finales.
-* **Alcance:** Descripción preliminar del software.
+A few resources to get you started if this is your first Flutter project:
 
-## Práctica No. 1: Configuración del Entorno y Primera Aplicación
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-### Descripción del Proyecto
-
-* **`lib/`**: Contiene todo el código Dart fuente del proyecto (`main.dart`).
-* **`pubspec.yaml`**: Archivo de configuración central, dependencias y assets del proyecto.
-* **`test/`**: Espacio dedicado a pruebas unitarias y de integración.
-
-### Conceptos Evaluados
-
-* **Hot Reload vs Hot Restart:** Hot Reload inyecta los cambios de código en la máquina virtual de Dart sin perder el estado de la aplicación. Hot Restart destruye el estado guardado, reinicia el ciclo de vida y reejecuta la app desde el método `main()`.
-
-## Práctica No. 3: Formularios y Validación
-
-### Objetivo
-
-Implementar un formulario de registro de estudiantes utilizando Flutter, aplicando validaciones de campos, selección mediante un menú desplegable y una lista dinámica de registros.
-
-### Conceptos utilizados
-
-* **Form:** Agrupa los campos del formulario y permite validar su contenido.
-* **GlobalKey<FormState>:** Permite acceder al estado del formulario para ejecutar la validación.
-* **TextFormField:** Permite capturar información y aplicar validaciones.
-* **DropdownButtonFormField:** Permite seleccionar el semestre.
-* **ListView.builder:** Permite mostrar dinámicamente los estudiantes registrados.
-* **setState:** Actualiza la interfaz cuando se agrega o elimina un estudiante.
-* **LayoutBuilder:** Permite adaptar la interfaz al espacio disponible.
-
-### Validaciones realizadas
-
-* El nombre debe contener al menos 3 caracteres.
-* El correo debe contener el carácter `@`.
-* Se validaron los campos del formulario.
-* Se agregaron estudiantes a la lista.
-* Se eliminó un estudiante de la lista.
-* Se probó la aplicación con diferentes tamaños de ventana.
-
-### Pruebas realizadas
-
-Se ejecutaron los siguientes comandos:
-
-```text
-dart format .
-flutter analyze
-flutter test
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
