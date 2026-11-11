@@ -1,115 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-void main() => runApp(const App());
-
-class App extends StatelessWidget {
-  const App({super.key});
-  @override
-  Widget build(BuildContext context) => MaterialApp(
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
-    theme: ThemeData(useMaterial3: true),
-    home: const RegistroPage(),
-  );
+    home: UbicacionPageGuiada(),
+  ));
 }
 
-class RegistroPage extends StatefulWidget {
-  const RegistroPage({super.key});
+class UbicacionPageGuiada extends StatefulWidget {
+  const UbicacionPageGuiada({super.key});
+
   @override
-  State<RegistroPage> createState() => _RegistroPageState();
+  State<UbicacionPageGuiada> createState() => _UbicacionPageGuiadaState();
 }
 
-class _RegistroPageState extends State<RegistroPage> {
-  final formKey = GlobalKey<FormState>();
-  final nombre = TextEditingController();
-  final correo = TextEditingController();
-  String semestre = '1';
-  final List<String> alumnos = [];
-  void guardar() {
-    if (formKey.currentState!.validate()) {
-      setState(() {
-        alumnos.add('${nombre.text} | ${correo.text} | Sem. $semestre');
-        nombre.clear();
-        correo.clear();
-        semestre = '1';
-      });
+class _UbicacionPageGuiadaState extends State<UbicacionPageGuiada> {
+  Position? posicion;
+  String mensaje = 'Sin ubicación';
+
+  Future<void> obtener() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      setState(() => mensaje = 'Activa el servicio de ubicación');
+      return;
     }
+    var permiso = await Geolocator.checkPermission();
+    if (permiso == LocationPermission.denied) {
+      permiso = await Geolocator.requestPermission();
+      if (permiso == LocationPermission.denied || permiso == LocationPermission.deniedForever) {
+        setState(() => mensaje = 'Permiso de ubicación no disponible');
+        return;
+      }
+    }
+    final p = await Geolocator.getCurrentPosition();
+    setState(() {
+      posicion = p;
+      mensaje = 'Ubicación obtenida';
+    });
+  }
+
+  Future<void> abrirMapa() async {
+    if (posicion == null) return;
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=${posicion!.latitude},${posicion!.longitude}',
+    );
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Registro de estudiantes')),
-    body: LayoutBuilder(
-      builder: (context, c) {
-        final ancho = c.maxWidth > 700 ? 600.0 : c.maxWidth;
-        return Center(
-          child: SizedBox(
-            width: ancho,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Form(
-                    key: formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: nombre,
-                          decoration: const InputDecoration(
-                            labelText: 'Nombre',
-                          ),
-                          validator: (v) => v == null || v.trim().length < 3
-                              ? 'Escribe un nombre válido'
-                              : null,
-                        ),
-                        TextFormField(
-                          controller: correo,
-                          decoration: const InputDecoration(
-                            labelText: 'Correo',
-                          ),
-                          validator: (v) => v != null && v.contains('@')
-                              ? null
-                              : 'Correo inválido',
-                        ),
-                        DropdownButtonFormField<String>(
-                          initialValue: semestre,
-                          items: List.generate(9, (i) => '${i + 1}')
-                              .map(
-                                (s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text('$s°'),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) => semestre = v!,
-                        ),
-                        const SizedBox(height: 12),
-                        FilledButton(
-                          onPressed: guardar,
-                          child: const Text('Agregar'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: alumnos.length,
-                      itemBuilder: (_, i) => ListTile(
-                        leading: CircleAvatar(child: Text('${i + 1}')),
-                        title: Text(alumnos[i]),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => setState(() => alumnos.removeAt(i)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Mi Ubicación - Guiado JuanPablo')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.location_on, size: 80, color: Colors.blue),
+              const SizedBox(height: 12),
+              Text(mensaje, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 12),
+              if (posicion != null) ...[
+                Text('Latitud: ${posicion!.latitude}'),
+                Text('Longitud: ${posicion!.longitude}'),
+                Text('Precisión: ${posicion!.accuracy} m'),
+                const SizedBox(height: 16),
+              ],
+              FilledButton(onPressed: obtener, child: const Text('Obtener ubicación')),
+              const SizedBox(height: 8),
+              OutlinedButton(onPressed: abrirMapa, child: const Text('Abrir en mapa')),
+            ],
           ),
-        );
-      },
-    ),
-  );
+        ),
+      ),
+    );
+  }
 }
