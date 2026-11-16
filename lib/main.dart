@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
-import 'screens/bitacora_dashboard_screen.dart';
+import 'screens/inicio_screen.dart';
+import 'services/notification_service.dart';
 
-void main() => runApp(const BitacoraApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.iniciar();
+  runApp(const IncidenciasApp());
+}
 
-class BitacoraApp extends StatelessWidget {
-  const BitacoraApp({super.key});
+class IncidenciasApp extends StatelessWidget {
+  const IncidenciasApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Bitácora de Inspección - Práctica 9',
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF12121C),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFBB86FC),
-          surface: Color(0xFF1E1E2C),
-        ),
+      title: 'Reporte Móvil de Incidencias',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
       ),
-      home: const BitacoraDashboardScreen(),
+      home: const InicioScreen(),
     );
   }
 }
